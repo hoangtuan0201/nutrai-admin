@@ -53,6 +53,19 @@ export const adminApi = {
     return data;
   },
 
+  grantUserPro: async (
+    id: string,
+    payload: { billingPeriod?: 'MONTHLY' | 'YEARLY'; durationDays?: number },
+  ): Promise<AdminUserDetail> => {
+    const { data } = await http.post<AdminUserDetail>(`/admin/users/${id}/grant-pro`, payload);
+    return data;
+  },
+
+  revokeUserPro: async (id: string): Promise<AdminUserDetail> => {
+    const { data } = await http.post<AdminUserDetail>(`/admin/users/${id}/revoke-pro`);
+    return data;
+  },
+
   // ─── Subsystem 3: Food Database ──────────────────────────────────────────
   listFoods: async (params: {
     page?: number;

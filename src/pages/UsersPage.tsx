@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Alert,
   Avatar,
@@ -7,14 +7,20 @@ import {
   Descriptions,
   Drawer,
   Input,
+  InputNumber,
+  message,
+  Modal,
+  Popconfirm,
+  Radio,
   Segmented,
   Select,
   Skeleton,
+  Space,
   Table,
   Tag,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { Eye, Search } from 'lucide-react';
+import { Crown, Eye, Search } from 'lucide-react';
 import { adminApi } from '@/api/admin.api';
 import { extractApiError } from '@/api/http';
 import type { AdminUserListItem, Role, UserPlan } from '@/types/admin.types';
@@ -35,6 +41,7 @@ const ACTIVITY_LABEL: Record<string, string> = {
 };
 
 export const UsersPage: React.FC = () => {
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(15);
   const [searchInput, setSearchInput] = useState('');
@@ -42,6 +49,15 @@ export const UsersPage: React.FC = () => {
   const [plan, setPlan] = useState<'ALL' | UserPlan>('ALL');
   const [role, setRole] = useState<'ALL' | Role>('ALL');
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+
+  const [proModalUser, setProModalUser] = useState<{
+    id: string;
+    name: string | null;
+    email: string;
+    plan: UserPlan;
+  } | null>(null);
+  const [billingPeriod, setBillingPeriod] = useState<'MONTHLY' | 'YEARLY'>('MONTHLY');
+  const [durationDays, setDurationDays] = useState<number>(30);
 
   const usersQuery = useQuery({
     queryKey: ['admin', 'users', { page, limit, search, plan, role }],
@@ -60,6 +76,46 @@ export const UsersPage: React.FC = () => {
     queryFn: () => adminApi.getUserDetail(selectedUserId!),
     enabled: Boolean(selectedUserId),
   });
+
+  const grantProMutation = useMutation({
+    mutationFn: ({ id, billingPeriod: bp, durationDays: days }: {
+      id: string;
+      billingPeriod: 'MONTHLY' | 'YEARLY';
+      durationDays: number;
+    }) => adminApi.grantUserPro(id, { billingPeriod: bp, durationDays: days }),
+    onSuccess: (updated) => {
+      message.success(`Upgraded ${updated.email} to PRO`);
+      setProModalUser(null);
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
+    },
+    onError: (err) => {
+      message.error(extractApiError(err));
+    },
+  });
+
+  const revokeProMutation = useMutation({
+    mutationFn: (id: string) => adminApi.revokeUserPro(id),
+    onSuccess: (updated) => {
+      message.success(`Revoked PRO plan for ${updated.email}`);
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
+    },
+    onError: (err) => {
+      message.error(extractApiError(err));
+    },
+  });
+
+  const openProModal = (target: {
+    id: string;
+    name: string | null;
+    email: string;
+    plan: UserPlan;
+  }) => {
+    setProModalUser(target);
+    setBillingPeriod('MONTHLY');
+    setDurationDays(30);
+  };
 
   const columns: ColumnsType<AdminUserListItem> = [
     {
@@ -141,18 +197,35 @@ export const UsersPage: React.FC = () => {
       render: (val: string) => <span className="tabular-nums text-[#5C594E]">{formatDateTime(val)}</span>,
     },
     {
-      title: 'Profile',
+      title: 'Actions',
       key: 'action',
-      width: 120,
+      width: 210,
       align: 'right',
       render: (_, record) => (
-        <Button
-          size="small"
-          icon={<Eye size={14} />}
-          onClick={() => setSelectedUserId(record.id)}
-        >
-          Inspect
-        </Button>
+        <Space size={6}>
+          <Button
+            size="small"
+            type={record.plan === 'FREE' ? 'primary' : 'default'}
+            icon={<Crown size={13} />}
+            onClick={() =>
+              openProModal({
+                id: record.id,
+                name: record.name,
+                email: record.email,
+                plan: record.plan,
+              })
+            }
+          >
+            {record.plan === 'PRO' ? 'Extend Pro' : 'Make Pro'}
+          </Button>
+          <Button
+            size="small"
+            icon={<Eye size={14} />}
+            onClick={() => setSelectedUserId(record.id)}
+          >
+            Inspect
+          </Button>
+        </Space>
       ),
     },
   ];
@@ -297,6 +370,40 @@ export const UsersPage: React.FC = () => {
                   {detail._count.meals} logged meals · {detail._count.payments} payments
                 </div>
               </div>
+              <Space direction="vertical" size={6} align="end">
+                <Button
+                  size="small"
+                  type={detail.plan === 'FREE' ? 'primary' : 'default'}
+                  icon={<Crown size={13} />}
+                  onClick={() =>
+                    openProModal({
+                      id: detail.id,
+                      name: detail.name,
+                      email: detail.email,
+                      plan: detail.plan,
+                    })
+                  }
+                >
+                  {detail.plan === 'PRO' ? 'Extend Pro' : 'Make Pro'}
+                </Button>
+                {detail.plan === 'PRO' && (
+                  <Popconfirm
+                    title="Revoke Pro subscription?"
+                    description="This user will immediately revert to the FREE plan."
+                    okText="Revoke"
+                    okButtonProps={{ danger: true }}
+                    onConfirm={() => revokeProMutation.mutate(detail.id)}
+                  >
+                    <Button
+                      size="small"
+                      danger
+                      loading={revokeProMutation.isPending}
+                    >
+                      Revoke Pro
+                    </Button>
+                  </Popconfirm>
+                )}
+              </Space>
             </div>
 
             {/* Health Metrics */}
@@ -433,6 +540,77 @@ export const UsersPage: React.FC = () => {
           </div>
         )}
       </Drawer>
+
+      {/* Grant / Extend Pro Modal */}
+      <Modal
+        title={proModalUser?.plan === 'PRO' ? 'Extend Pro Subscription' : 'Upgrade User to Pro'}
+        open={Boolean(proModalUser)}
+        onCancel={() => setProModalUser(null)}
+        okText={proModalUser?.plan === 'PRO' ? 'Extend Pro' : 'Upgrade to Pro'}
+        confirmLoading={grantProMutation.isPending}
+        onOk={() => {
+          if (!proModalUser) return;
+          grantProMutation.mutate({
+            id: proModalUser.id,
+            billingPeriod,
+            durationDays,
+          });
+        }}
+      >
+        {proModalUser && (
+          <div className="space-y-4 pt-2">
+            <div className="nutrai-panel-subtle p-3 text-sm">
+              <div className="font-semibold text-[#151914]">
+                {proModalUser.name || 'Unnamed'}
+              </div>
+              <div className="text-xs text-[#5C594E]">{proModalUser.email}</div>
+            </div>
+
+            <div>
+              <div className="mb-1.5 text-xs font-semibold text-[#5C594E]">
+                Pro Plan Tier
+              </div>
+              <Radio.Group
+                value={billingPeriod}
+                onChange={(e) => {
+                  const next = e.target.value as 'MONTHLY' | 'YEARLY';
+                  setBillingPeriod(next);
+                  setDurationDays(next === 'YEARLY' ? 365 : 30);
+                }}
+                optionType="button"
+                buttonStyle="solid"
+                className="w-full"
+              >
+                <Radio.Button value="MONTHLY" className="w-1/2 text-center">
+                  Pro Monthly (30d)
+                </Radio.Button>
+                <Radio.Button value="YEARLY" className="w-1/2 text-center">
+                  Pro Yearly (365d)
+                </Radio.Button>
+              </Radio.Group>
+            </div>
+
+            <div>
+              <div className="mb-1.5 text-xs font-semibold text-[#5C594E]">
+                Duration (days)
+              </div>
+              <InputNumber
+                min={1}
+                max={3650}
+                value={durationDays}
+                onChange={(val) => setDurationDays(Number(val) || 30)}
+                className="w-full"
+                addonAfter="days"
+              />
+              <div className="mt-1.5 text-xs text-[#8A8679]">
+                {proModalUser.plan === 'PRO'
+                  ? 'Days will be added on top of the current active expiration date.'
+                  : 'Pro access starts immediately from today.'}
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

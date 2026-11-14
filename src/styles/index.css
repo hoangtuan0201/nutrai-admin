@@ -1,0 +1,148 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --nutrai-ivory: #f6f4ec;
+  --nutrai-surface: #ffffff;
+  --nutrai-alabaster: #faf9f3;
+  --nutrai-onyx: #151914;
+  --nutrai-ink-secondary: #5c594e;
+  --nutrai-ink-muted: #8a8679;
+  --nutrai-hairline: rgba(21, 25, 20, 0.09);
+  --nutrai-saffron: #ff9114;
+  --nutrai-saffron-ink: #b85e00;
+  --nutrai-green: #3b7a23;
+  --nutrai-scarlet: #c93826;
+  --nutrai-blue: #3b62d4;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: var(--nutrai-ivory);
+  color: var(--nutrai-onyx);
+  font-family: 'Manrope', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Browser surfaces themed to NutrAI's warm botanical palette */
+::selection {
+  background-color: rgba(255, 145, 20, 0.24);
+  color: var(--nutrai-onyx);
+}
+
+:focus-visible {
+  outline: 2px solid var(--nutrai-saffron);
+  outline-offset: 2px;
+}
+
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(21, 25, 20, 0.16);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(21, 25, 20, 0.28);
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+/* Single elevation: clean hairline panels without ghost shadow+border mixing */
+.nutrai-panel {
+  background-color: var(--nutrai-surface);
+  border: 1px solid var(--nutrai-hairline);
+  border-radius: 14px;
+}
+
+.nutrai-panel-subtle {
+  background-color: var(--nutrai-alabaster);
+  border: 1px solid var(--nutrai-hairline);
+  border-radius: 12px;
+}
+
+/* Crisp Ant Design table & menu polish */
+.ant-table-wrapper .ant-table {
+  background: transparent;
+  font-variant-numeric: tabular-nums;
+}
+
+.ant-table-wrapper .ant-table-thead > tr > th {
+  background-color: var(--nutrai-alabaster);
+  color: var(--nutrai-ink-secondary);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.01em;
+  border-bottom: 1px solid var(--nutrai-hairline);
+}
+
+.ant-table-wrapper .ant-table-tbody > tr > td {
+  border-bottom: 1px solid rgba(21, 25, 20, 0.06);
+}
+
+.ant-table-wrapper .ant-table-tbody > tr:hover > td {
+  background-color: #fbfaf4 !important;
+}
+
+/* Dark botanical sidebar navigation styling */
+.nutrai-sider-menu.ant-menu-dark {
+  background: transparent;
+}
+
+.nutrai-sider-menu.ant-menu-dark .ant-menu-item {
+  border-radius: 10px;
+  margin-inline: 10px;
+  width: calc(100% - 20px);
+  height: 42px;
+  line-height: 42px;
+  color: rgba(246, 244, 236, 0.72);
+  font-weight: 500;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.nutrai-sider-menu.ant-menu-dark .ant-menu-item:hover {
+  color: #f6f4ec;
+  background-color: rgba(246, 244, 236, 0.08);
+}
+
+.nutrai-sider-menu.ant-menu-dark .ant-menu-item-selected {
+  background-color: #ff9114 !important;
+  color: #151914 !important;
+  font-weight: 700;
+}
+
+.nutrai-sider-menu.ant-menu-dark .ant-menu-item-selected svg {
+  color: #151914;
+}
+

@@ -12,7 +12,6 @@ export type FitnessGoal = 'WEIGHT_LOSS' | 'MAINTENANCE' | 'MUSCLE_GAIN';
 export type PaymentMethod =
   | 'GOOGLE_PLAY'
   | 'APPLE_PAY'
-  | 'STRIPE'
   | 'VNPAY'
   | 'MOMO'
   | 'BANK_TRANSFER'

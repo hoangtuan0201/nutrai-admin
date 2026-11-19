@@ -49,7 +49,7 @@ const ROUTE_TITLES: Record<string, string> = {
   '/': 'Operations Overview',
   '/users': 'User Management',
   '/foods': 'Food Database',
-  '/payments': 'Transactions & SePay / Stripe Reconciliation',
+  '/payments': 'Transactions & SePay Reconciliation',
   '/notifications': 'Push Notification Campaigns',
 };
 

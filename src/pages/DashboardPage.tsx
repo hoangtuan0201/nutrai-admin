@@ -2,22 +2,14 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Alert, Button, Progress, Skeleton } from 'antd';
-import {
-  ArrowRight,
-  BellRing,
-  CreditCard,
-  RefreshCw,
-  Users,
-  UtensilsCrossed,
-} from 'lucide-react';
+import { ArrowRight, RefreshCw } from 'lucide-react';
 import { adminApi } from '@/api/admin.api';
 import { extractApiError } from '@/api/http';
 import type { PaymentMethod, RevenueByMethod } from '@/types/admin.types';
-import { formatDateTime, formatNumber, formatVnd } from '@/utils/format';
+import { formatNumber, formatVnd } from '@/utils/format';
 
 const METHOD_META: Record<string, { label: string; color: string }> = {
   SEPAY: { label: 'SePay (VietQR)', color: '#FF9114' },
-  STRIPE: { label: 'Stripe (Card)', color: '#3B62D4' },
   BANK_TRANSFER: { label: 'Bank Transfer', color: '#3B7A23' },
   GOOGLE_PLAY: { label: 'Google Play', color: '#5C594E' },
   APPLE_PAY: { label: 'Apple Pay', color: '#151914' },
@@ -35,11 +27,6 @@ export const DashboardPage: React.FC = () => {
   const overviewQuery = useQuery({
     queryKey: ['admin', 'dashboard', 'overview'],
     queryFn: adminApi.getDashboardOverview,
-  });
-
-  const tokenStatsQuery = useQuery({
-    queryKey: ['admin', 'notifications', 'stats'],
-    queryFn: adminApi.getNotificationStats,
   });
 
   if (overviewQuery.isLoading) {
@@ -76,33 +63,23 @@ export const DashboardPage: React.FC = () => {
     );
   }
 
-  const { users, revenue, generatedAt } = overviewQuery.data;
+  const { users, revenue } = overviewQuery.data;
   const proRate = users.total > 0 ? Math.round((users.proUsers / users.total) * 1000) / 10 : 0;
 
   const sepayAll = findMethodAmount(revenue.collectedAllTime.byMethod, 'SEPAY');
-  const stripeAll = findMethodAmount(revenue.collectedAllTime.byMethod, 'STRIPE');
   const allTimeTotal = revenue.collectedAllTime.total;
 
   const gatewayBreakdown = revenue.collectedAllTime.byMethod.length
     ? revenue.collectedAllTime.byMethod
-    : [sepayAll, stripeAll];
+    : [sepayAll];
 
   return (
     <div className="space-y-6">
       {/* Header action bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="m-0 text-sm text-[#5C594E]">
-          Normalized to Vietnam timezone (UTC+7) · Updated{' '}
-          <span className="tabular-nums font-semibold text-[#151914]">
-            {formatDateTime(generatedAt)}
-          </span>
-        </p>
+      <div className="flex justify-end">
         <Button
           icon={<RefreshCw size={15} className={overviewQuery.isFetching ? 'animate-spin' : ''} />}
-          onClick={() => {
-            overviewQuery.refetch();
-            tokenStatsQuery.refetch();
-          }}
+          onClick={() => overviewQuery.refetch()}
         >
           Refresh metrics
         </Button>
@@ -149,7 +126,7 @@ export const DashboardPage: React.FC = () => {
             <div className="pt-5 space-y-3.5">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-semibold text-[#151914]">
-                  Gateway breakdown (SePay / Stripe)
+                  Gateway breakdown (SePay VietQR)
                 </span>
                 <span className="text-xs text-[#5C594E] tabular-nums">
                   Successful transactions:{' '}
@@ -268,69 +245,6 @@ export const DashboardPage: React.FC = () => {
           </div>
         </section>
       </div>
-
-      {/* Operational Quick-Jump Strip */}
-      <section className="nutrai-panel p-5 sm:p-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 divide-y sm:divide-y-0 sm:divide-x divide-[rgba(21,25,20,0.08)]">
-          <button
-            type="button"
-            onClick={() => navigate('/users')}
-            className="flex cursor-pointer items-start gap-3 bg-transparent border-0 p-2 text-left transition-colors hover:bg-[#FAF9F3] rounded-lg"
-          >
-            <Users size={19} className="mt-0.5 shrink-0 text-[#151914]" />
-            <div>
-              <div className="font-semibold text-sm text-[#151914]">Health profiles</div>
-              <div className="mt-0.5 text-xs text-[#5C594E]">
-                Inspect BMR, TDEE & daily calorie targets
-              </div>
-            </div>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => navigate('/foods')}
-            className="flex cursor-pointer items-start gap-3 bg-transparent border-0 p-2 sm:pl-5 text-left transition-colors hover:bg-[#FAF9F3] rounded-lg"
-          >
-            <UtensilsCrossed size={19} className="mt-0.5 shrink-0 text-[#3B7A23]" />
-            <div>
-              <div className="font-semibold text-sm text-[#151914]">Standard food catalog</div>
-              <div className="mt-0.5 text-xs text-[#5C594E]">
-                Manage standard foods & Cloudinary photos
-              </div>
-            </div>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => navigate('/payments')}
-            className="flex cursor-pointer items-start gap-3 bg-transparent border-0 p-2 sm:pl-5 text-left transition-colors hover:bg-[#FAF9F3] rounded-lg"
-          >
-            <CreditCard size={19} className="mt-0.5 shrink-0 text-[#B85E00]" />
-            <div>
-              <div className="font-semibold text-sm text-[#151914]">Manual Pro activation</div>
-              <div className="mt-0.5 text-xs text-[#5C594E]">
-                Resolve late bank transfers past the 15-min window
-              </div>
-            </div>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => navigate('/notifications')}
-            className="flex cursor-pointer items-start gap-3 bg-transparent border-0 p-2 sm:pl-5 text-left transition-colors hover:bg-[#FAF9F3] rounded-lg"
-          >
-            <BellRing size={19} className="mt-0.5 shrink-0 text-[#3B62D4]" />
-            <div>
-              <div className="font-semibold text-sm text-[#151914]">
-                Push Broadcast ({formatNumber(tokenStatsQuery.data?.totalActiveTokens ?? 0)} tokens)
-              </div>
-              <div className="mt-0.5 text-xs text-[#5C594E]">
-                Send FCM alerts to All / Free / 3-day Inactive users
-              </div>
-            </div>
-          </button>
-        </div>
-      </section>
     </div>
   );
 };

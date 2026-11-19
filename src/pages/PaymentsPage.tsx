@@ -178,7 +178,7 @@ export const PaymentsPage: React.FC = () => {
       dataIndex: 'paymentMethod',
       width: 120,
       render: (m: PaymentMethod) => (
-        <Tag color={m === 'SEPAY' ? 'orange' : m === 'STRIPE' ? 'blue' : 'default'}>{m}</Tag>
+        <Tag color={m === 'SEPAY' ? 'orange' : 'default'}>{m}</Tag>
       ),
     },
     {
@@ -239,7 +239,7 @@ export const PaymentsPage: React.FC = () => {
       render: (_, r) => (
         <div>
           <div className="flex items-center gap-2">
-            <Tag color={r.provider === 'SEPAY' ? 'orange' : r.provider === 'STRIPE' ? 'blue' : 'default'}>
+            <Tag color={r.provider === 'SEPAY' ? 'orange' : 'default'}>
               {r.provider}
             </Tag>
             <span className="font-mono text-xs font-semibold text-[#151914]">{r.eventType}</span>
@@ -356,7 +356,6 @@ export const PaymentsPage: React.FC = () => {
                       className="w-44"
                       options={[
                         { label: 'SePay (VietQR)', value: 'SEPAY' },
-                        { label: 'Stripe', value: 'STRIPE' },
                         { label: 'Bank Transfer', value: 'BANK_TRANSFER' },
                       ]}
                     />
@@ -397,7 +396,7 @@ export const PaymentsPage: React.FC = () => {
           },
           {
             key: 'events',
-            label: 'SePay / Stripe Webhook Logs',
+            label: 'SePay Webhook Logs',
             children: (
               <div className="space-y-4">
                 <div className="nutrai-panel p-4 flex flex-wrap items-center gap-3">
@@ -431,7 +430,6 @@ export const PaymentsPage: React.FC = () => {
                     className="w-40"
                     options={[
                       { label: 'SEPAY', value: 'SEPAY' },
-                      { label: 'STRIPE', value: 'STRIPE' },
                       { label: 'MANUAL', value: 'MANUAL' },
                     ]}
                   />

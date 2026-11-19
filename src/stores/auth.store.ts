@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { queryClient } from '@/lib/queryClient';
 import type { AdminAuthUser } from '@/types/admin.types';
 
 interface AuthState {
@@ -24,7 +25,10 @@ export const useAuthStore = create<AuthState>()(
       setSession: ({ accessToken, refreshToken, user }) =>
         set({ accessToken, refreshToken, user }),
       setAccessToken: (accessToken) => set({ accessToken }),
-      logout: () => set({ accessToken: null, refreshToken: null, user: null }),
+      logout: () => {
+        queryClient.clear();
+        set({ accessToken: null, refreshToken: null, user: null });
+      },
     }),
     {
       name: 'nutrai-admin-auth',

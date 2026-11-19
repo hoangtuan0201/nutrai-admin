@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Alert,
+  App as AntApp,
   Avatar,
   Button,
   Descriptions,
   Drawer,
   Input,
   InputNumber,
-  message,
   Modal,
   Popconfirm,
   Radio,
@@ -41,6 +41,7 @@ const ACTIVITY_LABEL: Record<string, string> = {
 };
 
 export const UsersPage: React.FC = () => {
+  const { message } = AntApp.useApp();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(15);
@@ -597,8 +598,13 @@ export const UsersPage: React.FC = () => {
               <InputNumber
                 min={1}
                 max={3650}
+                precision={0}
                 value={durationDays}
-                onChange={(val) => setDurationDays(Number(val) || 30)}
+                onChange={(val) => {
+                  if (typeof val === 'number' && Number.isFinite(val)) {
+                    setDurationDays(Math.max(1, Math.round(val)));
+                  }
+                }}
                 className="w-full"
                 addonAfter="days"
               />

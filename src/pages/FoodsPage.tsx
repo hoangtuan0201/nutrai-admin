@@ -155,9 +155,13 @@ export const FoodsPage: React.FC = () => {
       return;
     }
 
-    const dataUri = await fileToDataUri(file);
-    setPendingBase64(dataUri);
-    setRemoveImage(false);
+    try {
+      const dataUri = await fileToDataUri(file);
+      setPendingBase64(dataUri);
+      setRemoveImage(false);
+    } catch {
+      message.error('Failed to read image file. Please try another image.');
+    }
   };
 
   const previewUrl =

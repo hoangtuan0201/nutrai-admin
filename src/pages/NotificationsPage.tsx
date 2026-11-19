@@ -6,6 +6,7 @@ import {
   Button,
   Form,
   Input,
+  Popconfirm,
   Radio,
   Select,
   Table,
@@ -234,16 +235,23 @@ export const NotificationsPage: React.FC = () => {
             <div className="mt-0.5 text-xs text-white/80 leading-relaxed">{watchedBody}</div>
           </div>
 
-          <Button
-            type="primary"
-            htmlType="submit"
-            size="large"
-            block
-            icon={<Send size={15} />}
-            loading={broadcastMutation.isPending}
+          <Popconfirm
+            title="Send push broadcast?"
+            description="This will immediately deliver a push notification to all matching users."
+            okText="Send Now"
+            cancelText="Cancel"
+            onConfirm={() => form.submit()}
           >
-            Send Broadcast Now
-          </Button>
+            <Button
+              type="primary"
+              size="large"
+              block
+              icon={<Send size={15} />}
+              loading={broadcastMutation.isPending}
+            >
+              Send Broadcast Now
+            </Button>
+          </Popconfirm>
         </Form>
       </section>
 

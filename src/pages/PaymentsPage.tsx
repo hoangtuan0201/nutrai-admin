@@ -450,6 +450,20 @@ export const PaymentsPage: React.FC = () => {
                   />
                 </div>
 
+                {eventsQuery.isError && (
+                  <Alert
+                    type="error"
+                    showIcon
+                    message="Unable to load webhook logs"
+                    description={extractApiError(eventsQuery.error)}
+                    action={
+                      <Button size="small" onClick={() => eventsQuery.refetch()}>
+                        Retry
+                      </Button>
+                    }
+                  />
+                )}
+
                 <div className="nutrai-panel overflow-hidden">
                   <Table<PaymentEventItem>
                     rowKey="id"
@@ -485,6 +499,13 @@ export const PaymentsPage: React.FC = () => {
       >
         {paymentDetailQuery.isLoading ? (
           <Skeleton active paragraph={{ rows: 8 }} />
+        ) : paymentDetailQuery.isError ? (
+          <Alert
+            type="error"
+            showIcon
+            message="Failed to load transaction details"
+            description={extractApiError(paymentDetailQuery.error)}
+          />
         ) : !paymentDetail ? (
           <Alert type="error" message="Transaction details not found" />
         ) : (

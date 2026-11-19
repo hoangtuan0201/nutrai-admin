@@ -34,7 +34,12 @@ async function refreshAccessToken(): Promise<string | null> {
     const res = await axios.post<{ accessToken: string }>(
       `${API_BASE_URL}/auth/refresh`,
       { refreshToken },
-      { headers: { 'Content-Type': 'application/json' } },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+        },
+      },
     );
     const nextToken = res.data?.accessToken;
     if (!nextToken) {
